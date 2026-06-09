@@ -43,16 +43,6 @@ app.add_middleware(
 # Mount static uploads files
 app.mount("/uploads", StaticFiles(directory="static"), name="uploads")
 
-@app.get("/")
-async def root():
-    return {
-        "title": "Automated Stock Monitoring API",
-        "version": "1.0.0",
-        "documentation": "/docs",
-        "health": "/health",
-        "status": "running"
-    }
-
 # Initialize systems
 cv_processor = CVProcessor()
 notification_system = NotificationSystem()
