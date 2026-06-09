@@ -40,8 +40,8 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
-# Mount static files
-app.mount("/static", StaticFiles(directory="static"), name="static")
+# Mount static uploads files
+app.mount("/uploads", StaticFiles(directory="static"), name="uploads")
 
 @app.get("/")
 async def root():
@@ -403,6 +403,21 @@ async def websocket_endpoint(websocket: WebSocket):
 @app.get("/health")
 async def health_check():
     return {"status": "healthy", "timestamp": datetime.utcnow()}
+
+# Serve React Frontend SPA
+from fastapi.responses import FileResponse
+frontend_path = os.path.join(os.path.dirname(__file__), "frontend_build")
+
+@app.get("/{catchall:path}")
+async def serve_react_app(catchall: str):
+    file_path = os.path.join(frontend_path, catchall)
+    if catchall and os.path.isfile(file_path):
+        return FileResponse(file_path)
+    # Default to index.html for SPA routing (e.g. /login, /dashboard)
+    index_path = os.path.join(frontend_path, "index.html")
+    if os.path.isfile(index_path):
+        return FileResponse(index_path)
+    return {"message": "Backend API is running. Frontend build not found."}
 
 if __name__ == "__main__":
     import uvicorn

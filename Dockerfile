@@ -1,3 +1,13 @@
+# --- Stage 1: Build the React frontend ---
+FROM node:18-alpine AS frontend-builder
+WORKDIR /app/frontend
+COPY frontend/package*.json ./
+RUN npm install
+COPY frontend/ ./
+ENV REACT_APP_API_URL=/
+RUN npm run build
+
+# --- Stage 2: Run the FastAPI backend ---
 FROM python:3.9-slim
 
 # Install system dependencies
@@ -7,7 +17,6 @@ RUN apt-get update && apt-get install -y \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Set working directory
 WORKDIR /app
 
 # Copy backend requirements and install
@@ -16,6 +25,9 @@ RUN pip install --no-cache-dir -r backend/requirements.txt
 
 # Copy backend code
 COPY backend/ ./backend/
+
+# Copy built React frontend to static folder in backend
+COPY --from=frontend-builder /app/frontend/build ./backend/frontend_build
 
 # Set working directory to backend so Python imports resolve correctly
 WORKDIR /app/backend
