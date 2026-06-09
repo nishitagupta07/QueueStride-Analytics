@@ -23,7 +23,9 @@ export const SocketProvider = ({ children }) => {
   useEffect(() => {
     if (user && token) {
       // Initialize WebSocket connection
-      const newSocket = io('ws://localhost:8000', {
+      const apiURL = process.env.REACT_APP_API_URL || 'http://localhost:8000';
+      const socketURL = apiURL.replace(/^http/, 'ws');
+      const newSocket = io(socketURL, {
         auth: {
           token: token,
         },

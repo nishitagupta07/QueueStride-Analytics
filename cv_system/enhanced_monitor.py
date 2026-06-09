@@ -57,7 +57,7 @@ class EnhancedStockMonitor:
         self.last_fps_time = time.time()
         
         # WebSocket for real-time updates
-        self.websocket_url = f"ws://localhost:8000/ws"
+        self.websocket_url = api_base_url.replace("http://", "ws://").replace("https://", "wss://") + "/ws"
         self.websocket = None
         
     def initialize_camera(self, camera_source):

@@ -1,0 +1,68 @@
+services:
+  # FastAPI Backend Service
+  - type: web
+    name: queuestride-backend
+    env: docker
+    dockerContext: backend
+    dockerfilePath: Dockerfile
+    plan: free
+    envVars:
+      - key: DATABASE_URL
+        fromDatabase:
+          name: queuestride-db
+          property: connectionString
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: queuestride-redis
+          property: connectionString
+      - key: SECRET_KEY
+        generateValue: true
+      - key: SMTP_SERVER
+        value: smtp.gmail.com
+      - key: SMTP_PORT
+        value: "587"
+      - key: SMTP_USERNAME
+        sync: false # User will set this in Render UI
+      - key: SMTP_PASSWORD
+        sync: false # User will set this in Render UI
+
+  # React Frontend Service (Served via Nginx Docker container)
+  - type: web
+    name: queuestride-frontend
+    env: docker
+    dockerContext: frontend
+    dockerfilePath: Dockerfile
+    plan: free
+    envVars:
+      - key: REACT_APP_API_URL
+        fromService:
+          type: web
+          name: queuestride-backend
+          property: url
+
+  # CV Processor Service (Runs as a background worker)
+  - type: worker
+    name: queuestride-cv-processor
+    env: docker
+    dockerContext: cv_system
+    dockerfilePath: Dockerfile
+    plan: free
+    envVars:
+      - key: API_BASE_URL
+        fromService:
+          type: web
+          name: queuestride-backend
+          property: url
+
+# PostgreSQL Database
+databases:
+  - name: queuestride-db
+    databaseName: stockmonitor
+    user: postgres
+    plan: free
+
+# Redis Cache & Session Store
+redis:
+  - name: queuestride-redis
+    plan: free
